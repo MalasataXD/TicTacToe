@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        *
+        {
+            padding: 0;
+            margin: 0;
+            font-family: 'Itim',cursive;
+        }
+
+        .background
+        {
+            background-color: #12181B;
+            height: 100vh;
+            padding-top: 1px;
+        }
+
+        .title
+        {
+            color: white;
+            text-align: center;
+            font-size: 40px;
+            margin-top: 10%;
+        }
+
+        .subtitle
+        {
+            color: lightgreen;
+            text-align: center;
+            font-size: 15px;
+        }
+
+
+        .display
+        {
+            color:white;
+            font-size: 25px;
+            text-align: center;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .hide
+        {
+            display: none;
+        }
+
+        .container
+        {
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 33% 33% 33%;
+            grid-template-rows: 33% 33% 33%;
+            max-width: 300px;
+        }
+
+        .tile
+        {
+            border: 1px solid white;
+            min-width: 100px;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            cursor: pointer;
+        }
+
+        .playerX
+        {
+            color: lightcoral;
+        }
+
+        .playerO
+        {
+            color: lightskyblue;
+        }
+
+        .tie
+        {
+            color: lightgreen;
+        }
+
+        .controls
+        {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1em;
+        }
+
+        #reset
+        {
+            background-color: lightsalmon;
+            color: white;
+            padding:  8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 20px;
+            margin-left: 1em;
+            cursor: pointer;
+        }
+
+    </style>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe Game!</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Itim&display=swap">
+</head>
+<body>
+<main class="background">
+    <section class="title">
+        Tic Tac Toe
+    </section>
+    <section class="subtitle">
+        Object-oriented Programming
+    </section>
+
+    <section class="display">
+        Player <span class="display-player playerX">X</span>'s turn!
+    </section>
+    <section class="container">
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+        <div class="tile"></div>
+    </section>
+    <section class="display announcer hide"></section>
+    <section class="controls">
+        <button id="reset">Reset</button>
+    </section>
+</main>
+</body>
+
+<script>
+    class Game
+    {
+        // * CONTROLLS + ASSETS
+        #tiles
+        #playerDisplay
+        #resetButton
+        #announcer
+
+        // * GAME STATE
+        #board = ['', '', '', '', '', '', '', '', ''];
+        #currentPlayer = 'X';
+        #isGameActive = true;
+        // * Win conditions
+        #winningConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+        // * WIN messages;
+        #PLAYERX_WON = 'PLAYERX_WON';
+        #PLAYERO_WON = 'PLAYER_WON';
+        #TIE = 'TIE';
+        // * ANNOUNCER MESSAGES
+        #announcerMessage = {
+            [this.#PLAYERO_WON]: 'Player <span class="playerO">O</span> Won',
+            [this.#PLAYERX_WON]: 'Player <span class="playerX">X</span> Won',
+            [this.#TIE]: 'Tie'
+        }
+
+        constructor() {
+            this.#tiles = Array.from(document.querySelectorAll('.tile'));
+            this.#playerDisplay = document.querySelector('.display-player');
+            this.#resetButton = document.querySelector('#reset');
+            this.#announcer = document.querySelector('.announcer');
+        }
+
+        // * Start the game
+        start() {
+            this.#tiles.forEach((tile, index) => tile.addEventListener('click', () => this.userAction(tile, index)));
+            this.#resetButton.addEventListener('click', () => this.resetGame());
+        }
+
+        // * Change Player
+        changePlayer() {
+
+            this.#playerDisplay.classList.remove(`player${this.#currentPlayer}`); // * Remove color
+            this.#currentPlayer = this.#currentPlayer === 'X' ? 'O' : 'X'; // * Change player
+            this.#playerDisplay.innerText = this.#currentPlayer; // * Set display
+            this.#playerDisplay.classList.add(`player${this.#currentPlayer}`); // * Add color
+        }
+
+        // * Announce winner/tie
+        announce(type) {
+            this.#announcer.innerHTML = this.#announcerMessage[type];
+            this.#announcer.classList.remove('hide');
+
+            if (type === 'TIE') {
+                this.#announcer.classList.add('tie');
+            }
+        }
+
+        // * Handle result validation
+        handleResultValidation()
+        {
+            let roundWon = false;
+
+            for (let i = 0; i <= 7; i++) {
+                // * Extract the different winningConditions From the list.
+                const winCondition = (this.#winningConditions)[i];
+
+                // * Look at the board to check if they match the winning conditions!
+                const a = this.#board[winCondition[0]]
+                const b = this.#board[winCondition[1]]
+                const c = this.#board[winCondition[2]]
+
+                if (a === '' || b === '' || c === '') {
+                    continue; // If any of the three files are Empty --> Continue to check the next condition.
+                }
+                // * If all three files contain the same symbol --> Stop checking for win conditions!
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+
+            }
+
+            // * If the game has been won! --> Announce the winner!
+            if (roundWon) {
+                this.announce(this.#currentPlayer === 'X' ? this.#PLAYERX_WON : this.#PLAYERO_WON)
+                this.#isGameActive = false;
+                return;
+            }
+
+            // * If there is no more empty tiles --> Announce it is a TIE!
+            if (!this.#board.includes(''))
+            {
+                this.announce(this.#TIE);
+            }
+        }
+
+        // * Update Board
+        updateBoard(index)
+        {
+            this.#board[index] = this.#currentPlayer; // * Set the tile to the current player's symbol!
+        }
+
+        // * is Valid action?
+        isValidAction(tile)
+        {
+            // * If the tile doesn't contain either X or O --> It is a valid move!
+            return !(tile.innerText === 'X' || tile.innerText === 'O');
+        }
+
+        // * User action
+        userAction(tile,index)
+        {
+            if(this.isValidAction(tile) && this.#isGameActive)
+            {
+                tile.innerText = this.#currentPlayer // * Add the current player's symbol to the tile
+                tile.classList.add(`player${this.#currentPlayer}`) // * Add color
+                this.updateBoard(index) // * Update the state of the board.
+                this.handleResultValidation(); // * Check if it was a winning move
+                this.changePlayer(); // * Change turns.
+            }
+        }
+        // * Reset game
+        resetGame()
+        {
+            this.#board = ['', '', '', '', '', '', '', '', '']; // * Empty the board!
+            this.#isGameActive = true; // * Start a new game
+            this.#announcer.classList.add('hide'); // * Hide the announcer again!
+            this.#announcer.classList.remove('tie') // * Remove the 'tie' class from the announcer!
+
+            // * X always goes first!
+            if(this.#currentPlayer === 'O')
+            {
+                this.changePlayer();
+            }
+
+            // * Empty all tiles and reset their classes.
+            this.#tiles.forEach(tile =>
+            {
+                tile.innerText = '';
+                tile.classList.remove('playerX')
+                tile.classList.remove('playerO')
+            })
+
+        }
+    }
+
+    const game = new Game();
+    game.start();
+</script>
+</html>
