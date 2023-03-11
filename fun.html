@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="">
 <head>
     <style>
         *
@@ -23,7 +23,6 @@
             font-size: 40px;
             margin-top: 10%;
         }
-
 
         .display
         {
@@ -103,109 +102,103 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Itim&display=swap">
 </head>
 <body>
-<main class="background">
-    <section class="title">
-        Tic Tac Toe
-    </section>
+    <main class="background">
+        <section class="title">
+            Tic Tac Toe
+        </section>
 
-    <section class="display">
-        Player <span class="display-player playerX">X</span>'s turn!
-    </section>
-    <section class="container">
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-        <div class="tile"></div>
-    </section>
-    <section class="display announcer hide"></section>
-    <section class="controls">
-        <button id="reset">Reset</button>
-    </section>
-</main>
+        <section class="display">
+            Player <span class="display-player playerX">X</span>'s turn!
+        </section>
+        <section class="container">
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+            <div class="tile"></div>
+        </section>
+        <section class="display announcer hide"></section>
+        <section class="controls">
+            <button id="reset">Reset</button>
+        </section>
+    </main>
 </body>
-
 <script>
-    class Game
-    {
-        // * CONTROLLS + ASSETS
-        #tiles
-        #playerDisplay
-        #resetButton
-        #announcer
+    window.addEventListener('DOMContentLoaded', () => {
+        const tiles = Array.from(document.querySelectorAll('.tile'));
+        const playerDisplay = document.querySelector('.display-player');
+        const resetButton = document.querySelector('#reset');
+        const announcer = document.querySelector('.announcer');
 
-        // * GAME STATE
-        #board = ['', '', '', '', '', '', '', '', ''];
-        #currentPlayer = 'X';
-        #isGameActive = true;
-        // * Win conditions
-        #winningConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
-        // * WIN messages;
-        #PLAYERX_WON = 'PLAYERX_WON';
-        #PLAYERO_WON = 'PLAYER_WON';
-        #TIE = 'TIE';
-        // * ANNOUNCER MESSAGES
-        #announcerMessage = {
-            [this.#PLAYERO_WON]: 'Player <span class="playerO">O</span> Won',
-            [this.#PLAYERX_WON]: 'Player <span class="playerX">X</span> Won',
-            [this.#TIE]: 'Tie'
-        }
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let isGameActive = true;
 
-        constructor() {
-            this.#tiles = Array.from(document.querySelectorAll('.tile'));
-            this.#playerDisplay = document.querySelector('.display-player');
-            this.#resetButton = document.querySelector('#reset');
-            this.#announcer = document.querySelector('.announcer');
-        }
+        const PLAYERX_WON = 'PLAYERX_WON'
+        const PLAYERO_WON = 'PLAYER0_WON'
+        const TIE = 'TIE!'
 
-        // * Start the game
-        start() {
-            this.#tiles.forEach((tile, index) => tile.addEventListener('click', () => this.userAction(tile, index)));
-            this.#resetButton.addEventListener('click', () => this.resetGame());
-        }
+        /*
+            Indexs within the board
+            [0] [1] [2]
+            [3] [4] [5]
+            [6] [7] [8]
+         */
 
-        // * Change Player
-        changePlayer() {
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
 
-            this.#playerDisplay.classList.remove(`player${this.#currentPlayer}`); // * Remove color
-            this.#currentPlayer = this.#currentPlayer === 'X' ? 'O' : 'X'; // * Change player
-            this.#playerDisplay.innerText = this.#currentPlayer; // * Set display
-            this.#playerDisplay.classList.add(`player${this.#currentPlayer}`); // * Add color
-        }
-
-        // * Announce winner/tie
-        announce(type) {
-            this.#announcer.innerHTML = this.#announcerMessage[type];
-            this.#announcer.classList.remove('hide');
-
-            if (type === 'TIE') {
-                this.#announcer.classList.add('tie');
+        const announce = (type) => {
+            switch(type){
+                case PLAYERO_WON:
+                    announcer.innerHTML = 'Player <span class="playerO">O</span> Won';
+                    break;
+                case PLAYERX_WON:
+                    announcer.innerHTML = 'Player <span class="playerX">X</span> Won';
+                    break;
+                case TIE:
+                    announcer.innerText = "Tie";
+                    announcer.classList.add('tie');
             }
+            announcer.classList.remove('hide');
+        };
+
+        const changePlayer = () => {
+            playerDisplay.classList.remove(`player${currentPlayer}`); // * Remove the wrong coloring
+            currentPlayer = currentPlayer === "X" ? 'O' : 'X'; // * Change the symbol for the player
+            playerDisplay.innerText = currentPlayer; // * Change who the current player is in the display
+            playerDisplay.classList.add(`player${currentPlayer}`) // * Add the right coloring
         }
 
-        // * Handle result validation
-        handleResultValidation()
-        {
+        function handleResultValidation() {
             let roundWon = false;
 
             for (let i = 0; i <= 7; i++) {
                 // * Extract the different winningConditions From the list.
-                const winCondition = (this.#winningConditions)[i];
+                const winCondition = winningConditions[i];
 
                 // * Look at the board to check if they match the winning conditions!
-                const a = this.#board[winCondition[0]]
-                const b = this.#board[winCondition[1]]
-                const c = this.#board[winCondition[2]]
+                const a = board[winCondition[0]]
+                const b = board[winCondition[1]]
+                const c = board[winCondition[2]]
 
                 if (a === '' || b === '' || c === '') {
                     continue; // If any of the three files are Empty --> Continue to check the next condition.
                 }
                 // * If all three files contain the same symbol --> Stop checking for win conditions!
-                if (a === b && b === c) {
+                if (a === b && b == c) {
                     roundWon = true;
                     break;
                 }
@@ -214,59 +207,58 @@
 
             // * If the game has been won! --> Announce the winner!
             if (roundWon) {
-                this.announce(this.#currentPlayer === 'X' ? this.#PLAYERX_WON : this.#PLAYERO_WON)
-                this.#isGameActive = false;
+                announce(currentPlayer === 'X' ? PLAYERX_WON : PLAYERO_WON)
+                isGameActive = false;
                 return;
             }
 
             // * If there is no more empty tiles --> Announce it is a TIE!
-            if (!this.#board.includes(''))
+            if (!board.includes('')) {
+                announce(TIE);
+            }
+
+
+        }
+
+        const updateBoard = (index) => {
+            board[index] = currentPlayer; // * Set the tile to the current Player's symbol!
+        }
+
+        const isValidAction = (tile) => {
+            // * If there is a symbol in the tile --> RETURN FALSE!
+            if (tile.innerText === 'X' || tile.innerText === 'O') {
+                return false;
+            }
+            return true;
+        }
+
+        const userAction = (tile, index) =>
+        {
+            if (isValidAction(tile) && isGameActive)
             {
-                this.announce(this.#TIE);
+                tile.innerText = currentPlayer; // * Add the current player's symbol.
+                tile.classList.add(`player${currentPlayer}`); // * Assign the current player's class to the tile!
+                updateBoard(index); // * Update the board
+                handleResultValidation(); // * Check if the player won with this move!
+                changePlayer(); // * Change player's turn
             }
         }
 
-        // * Update Board
-        updateBoard(index)
+        const resetBoard = () =>
         {
-            this.#board[index] = this.#currentPlayer; // * Set the tile to the current player's symbol!
-        }
-
-        // * is Valid action?
-        isValidAction(tile)
-        {
-            // * If the tile doesn't contain either X or O --> It is a valid move!
-            return !(tile.innerText === 'X' || tile.innerText === 'O');
-        }
-
-        // * User action
-        userAction(tile,index)
-        {
-            if(this.isValidAction(tile) && this.#isGameActive)
-            {
-                tile.innerText = this.#currentPlayer // * Add the current player's symbol to the tile
-                tile.classList.add(`player${this.#currentPlayer}`) // * Add color
-                this.updateBoard(index) // * Update the state of the board.
-                this.handleResultValidation(); // * Check if it was a winning move
-                this.changePlayer(); // * Change turns.
-            }
-        }
-        // * Reset game
-        resetGame()
-        {
-            this.#board = ['', '', '', '', '', '', '', '', '']; // * Empty the board!
-            this.#isGameActive = true; // * Start a new game
-            this.#announcer.classList.add('hide'); // * Hide the announcer again!
-            this.#announcer.classList.remove('tie') // * Remove the 'tie' class from the announcer!
+            board = ['', '', '', '', '', '', '', '', '']; // * Empty the board!
+            isGameActive = true; // * Start a new game
+            announcer.classList.add('hide'); // * Hide the announcer again!
+            announcer.classList.remove('tie') // * Remove the 'tie' class from the announcer!
 
             // * X always goes first!
-            if(this.#currentPlayer === 'O')
+            if(currentPlayer === 'O')
             {
-                this.changePlayer();
+                changePlayer();
             }
 
             // * Empty all tiles and reset their classes.
-            this.#tiles.forEach(tile =>
+            tiles.forEach(tile =>
             {
                 tile.innerText = '';
                 tile.classList.remove('playerX')
@@ -274,9 +266,12 @@
             })
 
         }
-    }
 
-    const game = new Game();
-    game.start();
+
+        tiles.forEach((tile, index) => tile.addEventListener('click', () => userAction(tile, index)));
+
+
+        resetButton.addEventListener('click', resetBoard)
+    });
 </script>
 </html>
